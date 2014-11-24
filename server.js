@@ -12,7 +12,7 @@ var clients = {};
 var EurecaServer = require('eureca.io').EurecaServer;
 
 //create an instance of EurecaServer
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateStars']});
+var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger']});
 
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -27,7 +27,7 @@ eurecaServer.onConnect(function (conn) {
     console.log('New Client id=%s ', conn.id, conn.remoteAddress);
 	
 	//the getClient method provide a proxy allowing us to call remote client functions
-    var remote = eurecaServer.getClient(conn.id);    
+     var remote = eurecaServer.getClient(conn.id);    
 	
 	//register the client
 	clients[conn.id] = {id:conn.id, remote:remote}
@@ -74,7 +74,7 @@ eurecaServer.exports.handshake = function()
 
 
 
-eurecaServer.exports.handleKeys = function (starKilled, keys) {
+eurecaServer.exports.handleKeys = function (burgerEaten, keys) {
     var conn = this.connection;
     var updatedClient = clients[conn.id];
     // console.log("lol");
@@ -82,11 +82,9 @@ eurecaServer.exports.handleKeys = function (starKilled, keys) {
     {
         var remote = clients[c].remote;
         remote.updateState(updatedClient.id, keys);
-        remote.updateStars(starKilled);
-        //keep last known state so we can send it to new connected clients
-        clients[c].laststate = keys;
-        console.log(starKilled);
+        remote.updateBurger(burgerEaten);
     }
 }
+
 
 server.listen(8000);
