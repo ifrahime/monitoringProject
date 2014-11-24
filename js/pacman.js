@@ -3,7 +3,14 @@ var eurecaServer;
 var dude;
 var dudeList;   
 var myId=0;
- 
+var cursors;
+var stars;
+var player;
+var score=0;
+var scoreText;
+var starNumber=45;
+var starKilled=[];
+
 var eurecaClientSetup = function() {
     //create an instance of eureca.io client
     var eurecaClient = new Eureca.Client();
@@ -30,7 +37,7 @@ var eurecaClientSetup = function() {
         if (i == myId) return; //this is me
         
         console.log('SPAWN');
-        var dd=new Pacman(i, game, dude);
+        var dd=new Penguin(i, game, dude);
         dudeList[i] = dd;
         console.log(dudeList);
 
@@ -46,40 +53,65 @@ var eurecaClientSetup = function() {
 
     eurecaClient.exports.updateState = function(id, state)
     {
+    
         if (dudeList[id])  {
             dudeList[id].cursor = state;
-            dudeList[id].pacman.x = state.x;
-            dudeList[id].pacman.y = state.y;
+            dudeList[id].penguin.x = state.x;
+            dudeList[id].penguin.y = state.y;
             dudeList[id].update();
+            // for(var z in starKilled)
+            // {
+            //     for(var i=0; i<stars.length;i++)
+            //     {
+            //         var monStar=stars.getAt(i).body;
+            //         if(monStar.x==starKilled[z].x && monStar.y==starKilled[z].y)
+            //         {
+            //             stars.getAt(i).body.kill();
+            //         }
+            //     }
+            // }
         }
     }
-    
+    eurecaClient.exports.updateStars=function(starKilled)
+    {
+        for(var s in starKilled)
+        {
+            // console.log(starKilled[s]);
+            for(var i=0; i<stars.length;i++)
+                {
+                    var monStar=stars.getAt(i).body;
+                     if(monStar.x==starKilled[s].x && monStar.y==starKilled[s].y)
+                    {
+                        stars.getAt(i).kill();
+                        // console.log("X of Star : "+monStar.x+"Y of star : "+monStar.y)
+                    }
+
+                }
+        }
+         
+    }
 }
 
 
-var player;
-var cursors;
-var stars;
-var score = 0;
-var scoreText;
-var fraiseNumber=40;
 
 
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: eurecaClientSetup, update: update });
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, create: eurecaClientSetup, update: update });
 
 function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('star', 'assets/star.png');
-    game.load.spritesheet('dude', 'assets/peng.png', 48, 48);
+    game.load.image('dude', 'assets/peng.png');
 }
 
-Pacman = function (index, game, player) {
+Penguin = function (index, game) {
+    
     this.cursor = {
         left:false,
         right:false,
         up:false,
-        down:false      
+        down:false,
+
     }
 
     this.input = {
@@ -89,30 +121,22 @@ Pacman = function (index, game, player) {
         down:false
     }
 
-    var x = 48;
-    var y = game.world.height - 150;
+    var score=0;
 
     this.game = game;
-    this.player = player;
-    this.pacman = game.add.sprite(x, y, 'dude');
+    this.penguin = game.add.sprite(48, game.world.height - 150, 'dude');
 
-    this.pacman.id = index;
-    game.physics.arcade.enable(this.pacman);
-    // //  Player physics properties. Give the little guy a slight bounce.
-    this.pacman.body.bounce.y = 0.2;
-    // player.body.gravity.y =300;
-    this.pacman.body.collideWorldBounds = true;
-
-
+    this.penguin.id = index;
+    game.physics.enable(this.penguin);
 };
 
 
-Pacman.prototype.kill = function() {
-    this.pacman.kill();
+Penguin.prototype.kill = function() {
+    this.penguin.kill();
 }
 
 
-Pacman.prototype.update = function() {
+Penguin.prototype.update = function() {
     
     // for (var i in this.input) this.cursor[i] = this.input[i];   
       var inputChanged = (
@@ -125,35 +149,34 @@ Pacman.prototype.update = function() {
     
     if (inputChanged)
     {
+        console.log("in input changed condition");
         //Handle input change here
         //send new values to the server        
-        if (this.pacman.id == myId)
+        if (this.penguin.id == myId)
         {
             // send latest valid state to the server
-            this.input.x = this.pacman.x;
-            this.input.y = this.pacman.y;
-            
-            
-            eurecaServer.handleKeys(this.input);
+            this.input.x = this.penguin.x;
+            this.input.y = this.penguin.y;
+
+            eurecaServer.handleKeys(starKilled, this.input);
             
         }
     }
 
-    this.pacman.body.velocity.y = 0;
-    this.pacman.body.velocity.x = 0;
+   
+    if(this.input.up) {
+      this.penguin.y -= 10;
+    }
+    else if(this.input.down) {
+      this.penguin.y += 10;
+    }
+    if(this.input.left) {
+      this.penguin.x -= 10;
+    }
+    else if(this.input.right) {
+      this.penguin.x += 10;
+    }
 
-    if(this.cursor.up) {
-      this.pacman.body.velocity.y -= 50;
-    }
-    else if(this.cursor.down) {
-      this.pacman.body.velocity.y += 50;
-    }
-    if(this.cursor.left) {
-      this.pacman.body.velocity.x -= 50;
-    }
-    else if(this.cursor.right) {
-      this.pacman.body.velocity.x += 50;
-    }
 };
 
 
@@ -166,7 +189,7 @@ function create() {
 
     dudeList = {};
     
-    player = new Pacman(myId, game, dude);
+    player = new Penguin(myId, game);
     dudeList[myId] = player;
 
 
@@ -207,8 +230,15 @@ function update() {
     for(var i in dudeList)
     {
         //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-        game.physics.arcade.overlap(dudeList[i].pacman, stars, collectStar, null, this);
+        game.physics.arcade.overlap(dudeList[i].penguin, stars, collectStar, null, this);
         dudeList[i].update();
+        // update stars in the game 
+        // for(var k in stars._container.children.length)
+        // {
+            // console.log("nombre de star : "+stars.children.length);
+        // }
+
+        // stars.update();
     }
 }
 
@@ -216,14 +246,20 @@ function update() {
     
     // Removes the star from the screen
     star.kill();
-    fraiseNumber--;
-    //  Add and update the score
-    score += 10;
-    scoreText.text = 'Score: ' + score;
+    var obj={"x" : "0", "y": "0"};
+    obj.x=star.x;
+    obj.y=star.y;
+    starKilled.push(obj);
+    //save (x,y) star 
+    // starKilled[]
+    // starNumber--;
+    // //  Add and update the score
+    // score += 10;
+    // scoreText.text = 'Score: ' + score;
 
-    if(fraiseNumber==0)
-    {
-        scoreText.text='Congratulations you Win!';
-    }
+    // if(starNumber==0)
+    // {
+    //     scoreText.text='Congratulations you Win!';
+    // }
 
 }

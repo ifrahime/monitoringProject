@@ -12,7 +12,7 @@ var clients = {};
 var EurecaServer = require('eureca.io').EurecaServer;
 
 //create an instance of EurecaServer
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState']});
+var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateStars']});
 
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -63,8 +63,8 @@ eurecaServer.exports.handshake = function()
         for (var cc in clients)
         {        
             //send latest known position
-            var x = clients[cc].laststate ? clients[cc].laststate.x:  0;
-            var y = clients[cc].laststate ? clients[cc].laststate.y:  0;
+            var x = clients[cc].laststate; 
+            var y = clients[cc].laststate;
  
             remote.spawnEnemy(clients[cc].id, x, y);        
         }
@@ -74,17 +74,18 @@ eurecaServer.exports.handshake = function()
 
 
 
-eurecaServer.exports.handleKeys = function (keys) {
+eurecaServer.exports.handleKeys = function (starKilled, keys) {
     var conn = this.connection;
     var updatedClient = clients[conn.id];
-    
+    // console.log("lol");
     for (var c in clients)
     {
         var remote = clients[c].remote;
         remote.updateState(updatedClient.id, keys);
-        
+        remote.updateStars(starKilled);
         //keep last known state so we can send it to new connected clients
         clients[c].laststate = keys;
+        console.log(starKilled);
     }
 }
 
