@@ -8,11 +8,14 @@ app.use(express.static(__dirname));
 //we'll keep clients data here
 var clients = {};
   
+// Save Score
+var theWinner={"id": "0", "score": "0"};
+
 //get EurecaServer class
 var EurecaServer = require('eureca.io').EurecaServer;
 
 //create an instance of EurecaServer
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger']});
+var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger', 'updateScore']});
 
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -82,6 +85,17 @@ eurecaServer.exports.handleKeys = function (burgerEaten, keys) {
         var remote = clients[c].remote;
         remote.updateState(updatedClient.id, keys);
         remote.updateBurger(burgerEaten);
+        remote.updateScore(theWinner);
+    }
+}
+
+eurecaServer.exports.saveScore=function(id, score)
+{
+    // console.log(theWinner);
+    if(theWinner.score<score)
+    {
+         theWinner.id=id;
+         theWinner.score=score;
     }
 }
 

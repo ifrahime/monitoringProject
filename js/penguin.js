@@ -7,7 +7,6 @@ var cursors;
 var burgers;
 var player;
 var scoreText;
-var burgerNumber=45;
 var burgerEaten=[];
 
 var eurecaClientSetup = function() {
@@ -57,6 +56,7 @@ var eurecaClientSetup = function() {
             penguinList[id].penguin.y = state.y;
             penguinList[id].update();
         }
+        eurecaServer.saveScore(id, penguinList[id].penguin.score);
     }
 
 
@@ -74,11 +74,25 @@ var eurecaClientSetup = function() {
 
                 }
         }
-         
+    }
+
+    eurecaClient.exports.updateScore=function(theWinner)
+    {
+        if(burgers.countLiving()==0)
+        {
+            scoreText.text="The winner's ID is : "+theWinner.id;
+            for(var i=0; i<penguinList.length;i++)
+            {
+                if(penguinList[i].id!=theWinner.id)
+                {
+                    penguinList[i].penguin.kill();
+                }
+            }
+        }
     }
 }
 
-
+    
 
 
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, create: eurecaClientSetup, update: update });
@@ -123,10 +137,6 @@ Penguin.prototype.kill = function() {
 
 
 Penguin.prototype.update = function() {
-
-    
-   
-
       var inputChanged = (
         this.cursor.left != this.input.left ||
         this.cursor.right != this.input.right ||
@@ -214,7 +224,7 @@ function create() {
 
 function update() {
 
-
+   
      //do not update if client not ready
 
     if (!ready) return;
@@ -228,15 +238,14 @@ function update() {
     {
         //  call the collectStar function when a penguin overlaps with a s
         game.physics.arcade.overlap(penguinList[i].penguin, burgers, eatBurger, null, this);
-        
         penguinList[i].update();
+       
     }
+
+
 }
 
  function eatBurger (player, burger) {
-    
-    // Removes the burger from the screen
-
     burger.kill();
     var obj={"x" : "0", "y": "0"};
     obj.x=burger.x;
@@ -244,15 +253,8 @@ function update() {
     //save (x,y) of burgers 
     burgerEaten.push(obj);
     player.score+=10;
-    // console.log("The score of the player is : "+player.score);
-    burgerNumber--;
+    // console.log("Player ID is : "+player.id+" The Score is : "+player.score);
     scoreText.text = 'Score: ' + player.score;
-
-    // if(starNumber==0)
-    // {
-    //     scoreText.text='Congratulations you Win!';
-    // }
-
 }
 
 
