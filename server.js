@@ -77,7 +77,6 @@ eurecaServer.exports.handshake = function()
 eurecaServer.exports.handleKeys = function (burgerEaten, keys) {
     var conn = this.connection;
     var updatedClient = clients[conn.id];
-    // console.log("lol");
     for (var c in clients)
     {
         var remote = clients[c].remote;

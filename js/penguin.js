@@ -36,7 +36,7 @@ var eurecaClientSetup = function() {
         if (i == myId) return; 
         var peng=new Penguin(i, game, penguin);
         penguinList[i] = peng;
-        console.log(penguinList);
+        // console.log(penguinList);
 
     }
 
@@ -76,11 +76,6 @@ var eurecaClientSetup = function() {
         }
          
     }
-
-   
-
-
-
 }
 
 
@@ -91,7 +86,8 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, crea
 function preload() {
     game.load.image('sky', 'assets/sky.png');
     game.load.image('burg', 'assets/burger.png');
-    game.load.image('pengo', 'assets/peng.png');
+    game.load.image('ground', 'assets/platform.png');
+    game.load.spritesheet('pengo', 'assets/peng.png');
 }
 
 Penguin = function (index, game) {
@@ -113,10 +109,11 @@ Penguin = function (index, game) {
 
     this.game = game;
     this.penguin = game.add.sprite(48, game.world.height - 150, 'pengo');
+    game.physics.enable(this.penguin, Phaser.Physics.ARCADE);
+    this.penguin.body.collideWorldBounds = true;
     this.penguin.score=0;
-
     this.penguin.id = index;
-    game.physics.enable(this.penguin);
+   
 };
 
 
@@ -126,7 +123,10 @@ Penguin.prototype.kill = function() {
 
 
 Penguin.prototype.update = function() {
-       
+
+    
+   
+
       var inputChanged = (
         this.cursor.left != this.input.left ||
         this.cursor.right != this.input.right ||
@@ -145,7 +145,6 @@ Penguin.prototype.update = function() {
             // send latest valid state to the server
             this.input.x = this.penguin.x;
             this.input.y = this.penguin.y;
-
             eurecaServer.handleKeys(burgerEaten, this.input);
             
         }
@@ -172,15 +171,12 @@ Penguin.prototype.update = function() {
 function create() {
 
 
-//  A simple background for our game
+    //  We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    //A simple background for our game
 
     game.add.sprite(0, 0, 'sky');
-
-    penguinList = {};
-    
-    player = new Penguin(myId, game);
-    penguinList[myId] = player;
-
 
     //  Finally some burgers to collect
 
@@ -190,6 +186,13 @@ function create() {
         
     burgers.enableBody = true;
 
+
+    penguinList = {};
+    
+    player = new Penguin(myId, game);
+    penguinList[myId] = player;
+
+    
     
     for (var i = 0; i < 9; i++)
     {
@@ -211,6 +214,7 @@ function create() {
 
 function update() {
 
+
      //do not update if client not ready
 
     if (!ready) return;
@@ -224,6 +228,7 @@ function update() {
     {
         //  call the collectStar function when a penguin overlaps with a s
         game.physics.arcade.overlap(penguinList[i].penguin, burgers, eatBurger, null, this);
+        
         penguinList[i].update();
     }
 }
@@ -249,3 +254,5 @@ function update() {
     // }
 
 }
+
+
