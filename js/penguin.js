@@ -81,13 +81,6 @@ var eurecaClientSetup = function() {
         if(burgers.countLiving()==0)
         {
             scoreText.text="The winner's ID is : "+theWinner.id;
-            for(var i=0; i<penguinList.length;i++)
-            {
-                if(penguinList[i].id!=theWinner.id)
-                {
-                    penguinList[i].penguin.kill();
-                }
-            }
         }
     }
 }
@@ -224,7 +217,6 @@ function create() {
 
 function update() {
 
-   
      //do not update if client not ready
 
     if (!ready) return;
