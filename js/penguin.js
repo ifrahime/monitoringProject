@@ -9,15 +9,44 @@ var player;
 var scoreText;
 var burgerEaten=[];
 
+// var socket = new eio.Socket();
+
+// socket.on('open', function(){
+//     socket.on('message', function(data){});
+//     socket.on('close', function(){
+//         console.log("My primary server crashed :( ");
+//     });
+//   });
+
+// function envoyerMessage() {
+//   var socket=io.connect();
+//   socket.emit('Coucou','Hello server');
+// }
+
+var eurecaClientFactory = function(port)
+{
+    // Create eurecaClientSetup
+    eurecaClientSetup(port);
+}
+
 var eurecaClientSetup = function() {
+    var uRi='http://localhost:'+8000;
     //create an instance of eureca.io client
-     var eurecaClient = new Eureca.Client();
+     var eurecaClient = new Eureca.Client({ uri: uRi, prefix: 'eureca.io'});
     
-    eurecaClient.ready(function (proxy) {        
+    eurecaClient.ready(function (proxy) { 
+        // envoyerMessage(); 
+        console.log('function ready is called');      
         eurecaServer = proxy;
+
     });
     
-    
+
+     eurecaClient.onConnectionRetry(function (socket) {
+            // change server 
+            console.log("Change server");
+            quitGame();
+        });
     //methods defined under "exports" namespace become available in the server side
     
     eurecaClient.exports.setId = function(id)
@@ -88,7 +117,7 @@ var eurecaClientSetup = function() {
     
 
 
-var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, create: eurecaClientSetup, update: update });
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, create: eurecaClientSetup, update: update, quitGame: quitGame});
 
 function preload() {
     game.load.image('sky', 'assets/sky.png');
@@ -250,3 +279,8 @@ function update() {
 }
 
 
+
+function quitGame(){
+    console.log("in quitGame");
+    game.destroy();
+} //end quitGame function
