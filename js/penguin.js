@@ -8,24 +8,6 @@ var burgers;
 var player;
 var scoreText;
 var burgerEaten=[];
-var primaryServer=true;
-
-
-// var serverFlag = require('main').state;
-
-
-
-// var eurecaClientFactory = function()
-// {
-//     // Create eurecaClientSetup
-//     console.log("I am in eurecaClientFactory : "+changePort);
-//      if(changePort)
-//         eurecaClientSetup(8001);
-//     else
-//         eurecaClientSetup(9000);
-// }
-
-
 
 
 var eurecaClientSetup = function() {
@@ -37,6 +19,7 @@ var eurecaClientSetup = function() {
         // envoyerMessage(); 
         console.log('function ready is called');      
         eurecaServer = proxy;
+        eurecaServer.updateGame();
     });
     
 
@@ -89,6 +72,7 @@ var eurecaClientSetup = function() {
 
     eurecaClient.exports.updateBurger=function(burgerEaten)
     {
+        console.log("burgerEaten : "+JSON.stringify(burgerEaten));
         for(var s in burgerEaten)
         {
             for(var i=0; i<burgers.length;i++)
@@ -96,6 +80,7 @@ var eurecaClientSetup = function() {
                     var myBurger=burgers.getAt(i).body;
                      if(myBurger.x==burgerEaten[s].x && myBurger.y==burgerEaten[s].y)
                     {
+                        console.log("I am in updateBurger :) ");
                         burgers.getAt(i).kill();
                     }
 
@@ -103,12 +88,17 @@ var eurecaClientSetup = function() {
         }
     }
 
-    eurecaClient.exports.updateScore=function(theWinner)
+    eurecaClient.exports.updateWinner=function(theWinner)
     {
         if(burgers.countLiving()==0)
         {
             scoreText.text="The winner's ID is : "+theWinner.id;
         }
+    }
+
+    eurecaClient.exports.updateScore=function(jsonScore)
+    {
+        scoreText.text='Score: ' + jsonScore.score;
     }
 }
 
@@ -176,7 +166,6 @@ Penguin.prototype.update = function() {
             this.input.x = this.penguin.x;
             this.input.y = this.penguin.y;
             eurecaServer.handleKeys(burgerEaten, this.input);
-            
         }
     }
 
@@ -239,6 +228,7 @@ function create() {
     //  The score
 
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
 
 }
 
