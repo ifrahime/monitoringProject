@@ -8,50 +8,48 @@ var burgers;
 var player;
 var scoreText;
 var burgerEaten=[];
+var primaryServer=true;
 
-// var socket = new eio.Socket();
 
-// socket.on('open', function(){
-//     socket.on('message', function(data){});
-//     socket.on('close', function(){
-//         console.log("My primary server crashed :( ");
-//     });
-//   });
+// var serverFlag = require('main').state;
 
-// function envoyerMessage() {
-//   var socket=io.connect();
-//   socket.emit('Coucou','Hello server');
+
+
+// var eurecaClientFactory = function()
+// {
+//     // Create eurecaClientSetup
+//     console.log("I am in eurecaClientFactory : "+changePort);
+//      if(changePort)
+//         eurecaClientSetup(8001);
+//     else
+//         eurecaClientSetup(9000);
 // }
 
-var eurecaClientFactory = function(port)
-{
-    // Create eurecaClientSetup
-    eurecaClientSetup(port);
-}
+
+
 
 var eurecaClientSetup = function() {
-    var uRi='http://localhost:'+8000;
+    // var uRi='http://localhost:'+port;
     //create an instance of eureca.io client
-     var eurecaClient = new Eureca.Client({ uri: uRi, prefix: 'eureca.io'});
+    var eurecaClient = new Eureca.Client();
     
     eurecaClient.ready(function (proxy) { 
         // envoyerMessage(); 
         console.log('function ready is called');      
         eurecaServer = proxy;
-
     });
     
 
      eurecaClient.onConnectionRetry(function (socket) {
-            // change server 
             console.log("Change server");
-            quitGame();
+            // quitGame();
+            document.location.href="http://localhost:3000";
         });
+
     //methods defined under "exports" namespace become available in the server side
     
     eurecaClient.exports.setId = function(id)
-    {
-       
+    { 
         myId = id;
         create();
         eurecaServer.handshake();
@@ -202,7 +200,7 @@ Penguin.prototype.update = function() {
 
 function create() {
 
-
+   
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -284,3 +282,5 @@ function quitGame(){
     console.log("in quitGame");
     game.destroy();
 } //end quitGame function
+
+
