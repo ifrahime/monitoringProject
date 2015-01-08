@@ -8,6 +8,8 @@ var connectedPort=process.env.PORT;
 var outputFilename = 'server8000.json';
 var fs = require('fs');
 
+// Create JSON object to store data 
+
 var myData={
   clients : [],
   burgerEaten : [],
@@ -48,7 +50,6 @@ eurecaServer.onConnect(function (conn) {
      var remote = eurecaServer.getClient(conn.id);    
 	//register the client
 	clients[conn.id] = {id:conn.id, remote:remote}
-	// updateGame();
 	//here we call setId (defined in the client side)
 	remote.setId(conn.id);
   addDataToJsonObject("clients", clients[conn.id]);
@@ -66,11 +67,8 @@ eurecaServer.onDisconnect(function (conn) {
 	for (var c in clients)
 	{
 		var remote = clients[c].remote;
-		console.log("remote : "+JSON.stringify(remote));
-		//here we call kill() method defined in the client side
+		// console.log("remote : "+JSON.stringify(remote));
 		remote.kill(conn.id);
-    // remote.backUpGame();
-    // notifyBackUpServer(clients);
 	}	 
 });
 
@@ -141,7 +139,7 @@ eurecaServer.exports.updateGame=function()
   for (var c in clients)
   {
     var remote = clients[c].remote;
-    console.log("remote : "+JSON.stringify(remote));
+    // console.log("remote : "+JSON.stringify(remote));
 
      if(connectedPort!=8000)
           {
@@ -159,18 +157,12 @@ eurecaServer.exports.updateGame=function()
                var backUpPosition=JSON.parse(data).position[sizeOfPositionList-1];
                remote.updateBurger(burgerBackUp);
                remote.updateScore(clients[c].id, scoreBackUp);
-               console.log(backUpPosition);
-               console.log(clientBackUp.id);
+               // console.log(backUpPosition);
+               // console.log(clientBackUp.id);
                remote.updatePositionOfPenguin(clients[c].id, backUpPosition);
-               // remote.updateState(clientBackUp.id, clientBackUp.getPosition(clientBackUp.id));
-               
               });      
           }
     }
-}
-
-eurecaServer.exports.getPortConnected=function(){
-  return connectedPort;
 }
 
 server.listen(connectedPort);

@@ -73,7 +73,7 @@ var eurecaClientSetup = function() {
 
     eurecaClient.exports.updateBurger=function(burgerEaten)
     {
-        console.log("burgerEaten : "+JSON.stringify(burgerEaten));
+        // console.log("burgerEaten : "+JSON.stringify(burgerEaten));
         for(var s in burgerEaten)
         {
             for(var i=0; i<burgers.length;i++)
@@ -110,9 +110,9 @@ var eurecaClientSetup = function() {
 
     eurecaClient.exports.updatePositionOfPenguin=function(id, peng)
     {
-        console.log("ID : "+id);
-        console.log("penguin.x : "+peng.x+"penguin.y : "+peng.y);
-        console.log("penguin : "+penguinList[id].penguin.x);
+        // console.log("ID : "+id);
+        // console.log("penguin.x : "+peng.x+"penguin.y : "+peng.y);
+        // console.log("penguin : "+penguinList[id].penguin.x);
         penguinList[id].penguin.x = peng.x;
         penguinList[id].penguin.y = peng.y;
     }
