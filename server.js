@@ -11,6 +11,7 @@ var fs = require('fs');
 var myData={
   clients : [],
   burgerEaten : [],
+  position : [],
   score : []
 };
 
@@ -29,7 +30,7 @@ var theWinner={"id": "0", "score": "0"};
 var EurecaServer = require('eureca.io').EurecaServer;
 
 //create an instance of EurecaServer
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger', 'updateWinner', 'updateScore', 'updateGame', 'getPortConnected']});
+var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger', 'updateWinner', 'updateScore', 'updateGame', 'updatePositionOfPenguin', 'getPositionOfPenguin']});
 
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -50,7 +51,7 @@ eurecaServer.onConnect(function (conn) {
 	// updateGame();
 	//here we call setId (defined in the client side)
 	remote.setId(conn.id);
-  addDataToJsonObject("clients", clients);
+  addDataToJsonObject("clients", clients[conn.id]);
 
 });
 
@@ -127,6 +128,13 @@ eurecaServer.exports.saveScore=function(id, score)
 }
 
 
+eurecaServer.exports.savePosition=function(position)
+{
+    addDataToJsonObject("position", position);
+    saveData(myData);
+}
+
+
 eurecaServer.exports.updateGame=function()
 {
   console.log("I am in updateGame");
@@ -145,13 +153,17 @@ eurecaServer.exports.updateGame=function()
                var burgerBackUp=JSON.parse(data).burgerEaten;
                var sizeOfScoreList=getSizeOfJsonObject(JSON.parse(data).score);
                var sizeOfClientsList=getSizeOfJsonObject(JSON.parse(data).clients);
+               var sizeOfPositionList=getSizeOfJsonObject(JSON.parse(data).position);
                var scoreBackUp=JSON.parse(data).score[sizeOfScoreList-1];
                var clientBackUp=JSON.parse(data).clients[sizeOfClientsList-1];
-
+               var backUpPosition=JSON.parse(data).position[sizeOfPositionList-1];
                remote.updateBurger(burgerBackUp);
-               remote.updateScore(scoreBackUp);
-               remote.updateState(clientBackUp.id, clientBackUp.laststate);
-               console.log(clientBackUp);
+               remote.updateScore(clients[c].id, scoreBackUp);
+               console.log(backUpPosition);
+               console.log(clientBackUp.id);
+               remote.updatePositionOfPenguin(clients[c].id, backUpPosition);
+               // remote.updateState(clientBackUp.id, clientBackUp.getPosition(clientBackUp.id));
+               
               });      
           }
     }

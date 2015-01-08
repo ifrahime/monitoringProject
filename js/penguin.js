@@ -67,6 +67,7 @@ var eurecaClientSetup = function() {
             penguinList[id].update();
         }
         eurecaServer.saveScore(id, penguinList[id].penguin.score);
+        eurecaServer.savePosition({"x": penguinList[id].penguin.x, "y" : penguinList[id].penguin.y});
     }
 
 
@@ -96,9 +97,24 @@ var eurecaClientSetup = function() {
         }
     }
 
-    eurecaClient.exports.updateScore=function(jsonScore)
+    eurecaClient.exports.updateScore=function(id, jsonScore)
     {
+        penguinList[id].penguin.score=jsonScore.score;
         scoreText.text='Score: ' + jsonScore.score;
+    }
+
+    eurecaClient.exports.getPositionOfPenguin=function(id)
+    {
+        return {"x": penguinList[id].penguin.x, "y": penguinList[id].penguin.y};
+    }
+
+    eurecaClient.exports.updatePositionOfPenguin=function(id, peng)
+    {
+        console.log("ID : "+id);
+        console.log("penguin.x : "+peng.x+"penguin.y : "+peng.y);
+        console.log("penguin : "+penguinList[id].penguin.x);
+        penguinList[id].penguin.x = peng.x;
+        penguinList[id].penguin.y = peng.y;
     }
 }
 
