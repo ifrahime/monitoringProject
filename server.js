@@ -44,6 +44,8 @@ eurecaServer.attach(server);
 
 //detect client connection
 eurecaServer.onConnect(function (conn) { 
+  if(connectedPort==8000)
+    deleteContentFile();
     // deleteContentFile();
     console.log('New Client id=%s ', conn.id, conn.remoteAddress);
 	//the getClient method provide a proxy allowing us to call remote client functions
@@ -122,7 +124,6 @@ eurecaServer.exports.saveScore=function(id, score)
          theWinner.score=score;
     }
     addDataToJsonObject("score", theWinner);
-    saveData(myData);
 }
 
 

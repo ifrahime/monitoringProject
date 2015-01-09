@@ -91,7 +91,8 @@ var eurecaClientSetup = function() {
 
     eurecaClient.exports.updateWinner=function(theWinner)
     {
-        if(burgers.countLiving()==0)
+        // 8 burger for each 10 point ---> score = 400
+        if(penguinList[theWinner.id].penguin.score==400)
         {
             scoreText.text="The winner's ID is : "+theWinner.id;
         }
