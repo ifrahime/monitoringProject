@@ -1,17 +1,18 @@
 var ready = false;
 var eurecaServer;
-var penguin;
-var penguinList;   
+var player;
+var playerList;   
 var myId=0;
 var cursors;
 var burgers;
+var broccolis;
 var player;
 var scoreText;
 var burgerEaten=[];
+var burgerCount=0;
 
 
 var eurecaClientSetup = function() {
-    // var uRi='http://localhost:'+port;
     //create an instance of eureca.io client
     var eurecaClient = new Eureca.Client();
     
@@ -19,7 +20,7 @@ var eurecaClientSetup = function() {
         // envoyerMessage(); 
         console.log('function ready is called');      
         eurecaServer = proxy;
-        eurecaServer.updateGame();
+        eurecaServer.startGame();
     });
     
 
@@ -43,31 +44,31 @@ var eurecaClientSetup = function() {
     {
         
         if (i == myId) return; 
-        var peng=new Penguin(i, game, penguin);
-        penguinList[i] = peng;
-        // console.log(penguinList);
+        var peng=new player(i, game, player);
+        playerList[i] = peng;
+        // console.log(playerList);
 
     }
 
     eurecaClient.exports.kill = function(id)
     {   
-        if (penguinList[id]) {
-            penguinList[id].kill();
-            console.log('killing ', id, penguinList[id]);
+        if (playerList[id]) {
+            playerList[id].kill();
+            console.log('killing ', id, playerList[id]);
         }
     }
 
     eurecaClient.exports.updateState = function(id, state)
     {
     
-        if (penguinList[id])  {
-            penguinList[id].cursor = state;
-            penguinList[id].penguin.x = state.x;
-            penguinList[id].penguin.y = state.y;
-            penguinList[id].update();
+        if (playerList[id])  {
+            playerList[id].cursor = state;
+            playerList[id].player.x = state.x;
+            playerList[id].player.y = state.y;
+            playerList[id].update();
         }
-        eurecaServer.saveScore(id, penguinList[id].penguin.score);
-        eurecaServer.savePosition({"x": penguinList[id].penguin.x, "y" : penguinList[id].penguin.y});
+        eurecaServer.saveScore(id, playerList[id].player.score);
+        eurecaServer.savePosition({"x": playerList[id].player.x, "y" : playerList[id].player.y});
     }
 
 
@@ -92,30 +93,33 @@ var eurecaClientSetup = function() {
     eurecaClient.exports.updateWinner=function(theWinner)
     {
         // 8 burger for each 10 point ---> score = 400
-        if(penguinList[theWinner.id].penguin.score==400)
-        {
-            scoreText.text="The winner's ID is : "+theWinner.id;
+        console.log("Maximum score: "+burgerCount*10);
+        console.log("Winner score: "+theWinner.score);
+        console.log("Available count: "+burgers.length);
+        if(burgers.length==0){
+             if(playerList[theWinner.id].player.score==burgerCount*10)
+            {
+                scoreText.text="The winner's ID is : "+theWinner.id;
+            }
         }
     }
 
     eurecaClient.exports.updateScore=function(id, jsonScore)
     {
-        penguinList[id].penguin.score=jsonScore.score;
+        console.log("trace player list: "+playerList[id]);
+        playerList[id].player.score=jsonScore.score;
         scoreText.text='Score: ' + jsonScore.score;
     }
 
-    eurecaClient.exports.getPositionOfPenguin=function(id)
+    eurecaClient.exports.getPositionOfplayer=function(id)
     {
-        return {"x": penguinList[id].penguin.x, "y": penguinList[id].penguin.y};
+        return {"x": playerList[id].player.x, "y": playerList[id].player.y};
     }
 
-    eurecaClient.exports.updatePositionOfPenguin=function(id, peng)
+    eurecaClient.exports.updatePositionOfplayer=function(id, peng)
     {
-        // console.log("ID : "+id);
-        // console.log("penguin.x : "+peng.x+"penguin.y : "+peng.y);
-        // console.log("penguin : "+penguinList[id].penguin.x);
-        penguinList[id].penguin.x = peng.x;
-        penguinList[id].penguin.y = peng.y;
+        playerList[id].player.x = peng.x;
+        playerList[id].player.y = peng.y;
     }
 }
 
@@ -126,12 +130,14 @@ var game = new Phaser.Game(800, 600, Phaser.CANVAS, '', { preload: preload, crea
 
 function preload() {
     game.load.image('sky', 'assets/sky.png');
-    game.load.image('burg', 'assets/burger.png');
+    game.load.image('burger', 'assets/burger.png');
+    game.load.image('broccoli', 'assets/broccoli.png');
     game.load.image('ground', 'assets/platform.png');
-    game.load.spritesheet('pengo', 'assets/peng.png');
+    //game.load.spritesheet('player', 'assets/dude.png');
+    game.load.spritesheet('player', 'assets/dude.png', 32, 48);
 }
 
-Penguin = function (index, game) {
+player = function (index, game) {
     
     this.cursor = {
         left:false,
@@ -149,21 +155,33 @@ Penguin = function (index, game) {
     }
 
     this.game = game;
-    this.penguin = game.add.sprite(48, game.world.height - 150, 'pengo');
-    game.physics.enable(this.penguin, Phaser.Physics.ARCADE);
-    this.penguin.body.collideWorldBounds = true;
-    this.penguin.score=0;
-    this.penguin.id = index;
+    this.player = game.add.sprite(48, game.world.height - 150, 'player');
+    
+    this.player.animations.add('left', [0, 1, 2, 3], 10, true);
+    this.player.animations.add('turn', [4], 20, true);
+    this.player.animations.add('right', [5, 6, 7, 8], 10, true);
+
+
+    game.physics.enable(this.player, Phaser.Physics.ARCADE);
+    game.camera.follow(this.player);
+
+
+    this.player.body.collideWorldBounds = true;
+    this.player.body.bounce.y = 0.2;
+    this.player.body.setSize(20, 32, 5, 16);
+
+    this.player.score=0;
+    this.player.id = index;
    
 };
 
 
-Penguin.prototype.kill = function() {
-    this.penguin.kill();
+player.prototype.kill = function() {
+    this.player.kill();
 }
 
 
-Penguin.prototype.update = function() {
+player.prototype.update = function() {
       var inputChanged = (
         this.cursor.left != this.input.left ||
         this.cursor.right != this.input.right ||
@@ -177,27 +195,29 @@ Penguin.prototype.update = function() {
         console.log("in input changed condition");
         //Handle input change here
         //send new values to the server        
-        if (this.penguin.id == myId)
+        if (this.player.id == myId)
         {
             // send latest valid state to the server
-            this.input.x = this.penguin.x;
-            this.input.y = this.penguin.y;
+            this.input.x = this.player.x;
+            this.input.y = this.player.y;
             eurecaServer.handleKeys(burgerEaten, this.input);
         }
     }
 
    
     if(this.input.up) {
-      this.penguin.y -= 10;
+      this.player.y -= 10;
     }
     else if(this.input.down) {
-      this.penguin.y += 10;
+      this.player.y += 10;
     }
     if(this.input.left) {
-      this.penguin.x -= 10;
+      this.player.animations.play('left');
+      this.player.x -= 10;
     }
     else if(this.input.right) {
-      this.penguin.x += 10;
+     this.player.animations.play('right');
+      this.player.x += 10;
     }
 
 };
@@ -205,49 +225,70 @@ Penguin.prototype.update = function() {
 
 
 function create() {
-
-   
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //A simple background for our game
-
     game.add.sprite(0, 0, 'sky');
 
     //  Finally some burgers to collect
-
     burgers = game.add.group();
 
+    // Broccolis group
+    broccolis = game.add.group();
+
     //  We will enable physics for any burger that is created in this group
-        
     burgers.enableBody = true;
+    broccolis.enableBody = true;
 
-
-    penguinList = {};
+    playerList = {};
     
-    player = new Penguin(myId, game);
-    penguinList[myId] = player;
+    player = new player(myId, game);
+    playerList[myId] = player;
 
     
-    
-    for (var i = 0; i < 9; i++)
-    {
-       //  Create a burger inside of the 'burgers' group
-       for(var j=0;j<5;j++)
-       {
-         var burger = burgers.create(i * 95, 150+50*j, 'burg');
-       }
-    }
+    createBurgers();
+    createBroccolis();
 
-    //  Our controls.
+    //  Our controls
     cursors = game.input.keyboard.createCursorKeys();
 
     //  The score
-
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
 
 }
+
+
+
+function createBurgers(){
+     for (var i = 0; i < 9; i++)
+    {
+       //  Create a burger inside of the 'burgers' group
+       for(var j=0;j<5;j++)
+       {
+         if(j%2 == 0){
+              var burger = burgers.create(i * 95, 150+50*j, 'burger');
+              burgerCount++;
+         }
+       
+       }
+    }
+}
+
+function createBroccolis(){
+     for (var i = 0; i < 9; i++)
+    {
+       //  Create a burger inside of the 'burgers' group
+       for(var j=0;j<5;j++)
+       {
+        if(j%2 != 0){
+            broccolis.create(i * 95, 150+50*j, 'broccoli');
+        }
+       }
+    }
+}
+
 
 function update() {
 
@@ -260,11 +301,11 @@ function update() {
     player.input.up = cursors.up.isDown;
     player.input.down=cursors.down.isDown;
 
-    for(var i in penguinList)
+    for(var i in playerList)
     {
-        //  call the collectStar function when a penguin overlaps with a s
-        game.physics.arcade.overlap(penguinList[i].penguin, burgers, eatBurger, null, this);
-        penguinList[i].update();
+        //  call the collectStar function when a player overlaps with a s
+        game.physics.arcade.overlap(playerList[i].player, burgers, eatBurger, null, this);
+        playerList[i].update();
        
     }
 
@@ -276,11 +317,28 @@ function update() {
     var obj={"x" : "0", "y": "0"};
     obj.x=burger.x;
     obj.y=burger.y;
+
     //save (x,y) of burgers 
     burgerEaten.push(obj);
     player.score+=10;
-    // console.log("Player ID is : "+player.id+" The Score is : "+player.score);
+
     scoreText.text = 'Score: ' + player.score;
+
+    //Remove the eaten burger
+    burgers.remove(burger);
+}
+
+function eatBroccoli(player, broccoli) {
+    broccoli.kill();
+    var obj={"x" : "0", "y": "0"};
+    obj.x=broccoli.x;
+    obj.y=broccoli.y;
+
+    player.score+=10;
+    scoreText.text = 'Score: ' + player.score;
+
+    //Remove the eaten broccoli
+    broccolis.remove(broccoli);
 }
 
 
@@ -288,6 +346,6 @@ function update() {
 function quitGame(){
     console.log("in quitGame");
     game.destroy();
-} //end quitGame function
+}
 
 

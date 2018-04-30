@@ -4,7 +4,7 @@ var express = require('express')
 
 
 
-var connectedPort=process.env.PORT;
+var connectedPort=8000;
 var outputFilename = 'server8000.json';
 var fs = require('fs');
 
@@ -26,13 +26,13 @@ app.use(express.static(__dirname));
 var clients = {};
   
 // Save Score
-var theWinner={"id": "0", "score": "0"};
+var theWinner={"id": "0","score": "0"};
 
 //get EurecaServer class
-var EurecaServer = require('eureca.io').EurecaServer;
+var Eureca = new require('eureca.io');
 
 //create an instance of EurecaServer
-var eurecaServer = new EurecaServer({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger', 'updateWinner', 'updateScore', 'updateGame', 'updatePositionOfPenguin', 'getPositionOfPenguin']});
+var eurecaServer = new Eureca.Server({allow:['setId', 'spawnEnemy', 'kill', 'updateState', 'updateBurger', 'updateWinner', 'updateScore', 'updateGame', 'updatePositionOfPenguin', 'getPositionOfPenguin','unavailableBurgers']});
 
 //attach eureca.io to our http server
 eurecaServer.attach(server);
@@ -46,7 +46,6 @@ eurecaServer.attach(server);
 eurecaServer.onConnect(function (conn) { 
   if(connectedPort==8000)
     deleteContentFile();
-    // deleteContentFile();
     console.log('New Client id=%s ', conn.id, conn.remoteAddress);
 	//the getClient method provide a proxy allowing us to call remote client functions
      var remote = eurecaServer.getClient(conn.id);    
@@ -104,7 +103,7 @@ eurecaServer.exports.handleKeys = function (burgerEaten, keys) {
         remote.updateState(updatedClient.id, keys);
         remote.updateBurger(burgerEaten);
         remote.updateWinner(theWinner);
-       
+        
     }
     
     for(var i=0;i<burgerEaten.length;i++)
@@ -134,9 +133,9 @@ eurecaServer.exports.savePosition=function(position)
 }
 
 
-eurecaServer.exports.updateGame=function()
+eurecaServer.exports.startGame=function()
 {
-  console.log("I am in updateGame");
+  console.log("I am in startGame");
   for (var c in clients)
   {
     var remote = clients[c].remote;
@@ -147,6 +146,7 @@ eurecaServer.exports.updateGame=function()
 
               fs.readFile( __dirname + '/server8000.json', function (err, data) {
               if (err) {
+                console.log("An expected error occured while starting the game. Cause : "+err);
                 throw err; 
               }
                var burgerBackUp=JSON.parse(data).burgerEaten;
@@ -158,8 +158,7 @@ eurecaServer.exports.updateGame=function()
                var backUpPosition=JSON.parse(data).position[sizeOfPositionList-1];
                remote.updateBurger(burgerBackUp);
                remote.updateScore(clients[c].id, scoreBackUp);
-               // console.log(backUpPosition);
-               // console.log(clientBackUp.id);
+
                remote.updatePositionOfPenguin(clients[c].id, backUpPosition);
               });      
           }
