@@ -1,0 +1,26 @@
+{
+  "name": "monitoringproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {},
+  "devDependencies": {
+    "engine.io": "^3.2.0",
+    "eureca.io": "^0.8.2",
+    "express": "^4.16.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mountassirIbrahim/monitoringProject.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mountassirIbrahim/monitoringProject/issues"
+  },
+  "homepage": "https://github.com/mountassirIbrahim/monitoringProject#readme"
+}
